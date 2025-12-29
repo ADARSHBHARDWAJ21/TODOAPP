@@ -1,47 +1,26 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StatusBar } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+
 import { useTheme } from "../../hooks/useTheme";
+import { createHomeStyles } from "@/styles/home.styles";
 
 export default function Index() {
-  const { toggleDarkMode, isDarkMode } = useTheme(); // ONLY for toggle
+  const { toggleDarkMode, colors } = useTheme();
+  const homeStyles = createHomeStyles(colors);
 
   return (
-    <View style={styles.root}>
-      <Text style={styles.title}>
-        Todos Screen
-      </Text>
+    <LinearGradient
+      colors={colors.gradients.background} style={homeStyles.container}>
+        <StatusBar barStyle={colors.statusBarStyle} />
+      <SafeAreaView style={homeStyles.safeArea}>
+    
 
-      <Text style={styles.status}>
-        Dark Mode: {isDarkMode ? "ON" : "OFF"}
-      </Text>
 
-      <TouchableOpacity onPress={toggleDarkMode}>
-        <Text style={styles.button}>
-          Toggle Dark Mode (Tabs Only)
-        </Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity onPress={toggleDarkMode}>
+          <Text>Toggle Dark Mode</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: "#ffffff", // 🔒 HARD LOCK WHITE
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 24,
-    color: "#000000", // 🔒 HARD LOCK BLACK
-    marginBottom: 10,
-  },
-  status: {
-    fontSize: 16,
-    color: "#000000", // 🔒 HARD LOCK BLACK
-    marginBottom: 20,
-  },
-  button: {
-    fontSize: 16,
-    color: "#2563eb",
-  },
-});
