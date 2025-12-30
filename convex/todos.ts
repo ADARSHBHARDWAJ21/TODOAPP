@@ -1,61 +1,106 @@
 import { mutation, query } from "./_generated/server";
-import { ConvexError, v } from "convex/values";
+import { v } from "convex/values";
 
+/* =======================
+   GET TODOS
+======================= */
 export const getTodos = query({
   handler: async (ctx) => {
-    const todos = await ctx.db
+    return await ctx.db
       .query("todos")
       .order("desc")
       .collect();
-
-    return todos;
   },
 });
 
+/* =======================
+   ADD TODO
+======================= */
 export const addTodo = mutation({
   args: {
     text: v.string(),
   },
-  handler: async (ctx, args) => {
-   const todoId = await ctx.db.insert("todos", {
-      text: args.text,
-      iscompleted: false,
+  handler: async (ctx, { text }) => {
+    return await ctx.db.insert("todos", {
+      text,
+      iscompleted: false, // ✅ FIXED casing
     });
-
-    return todoId;
   },
 });
 
-export const toggleTodo = mutation ({
-    args: {id:v.id("todos")},
-    handler: async (ctx, args) => {
-        const todo = await ctx.db.get(args.id);
-        if (!todo) throw new ConvexError("Todo not found")
+/* =======================
+   TOGGLE TODO
+======================= */
+export const toggleTodo = mutation({
+  args: {
+    id: v.id("todos"),
+  },
+  handler: async (ctx, { id }) => {
+    const todo = await ctx.db.get(id);
 
-            await ctx.db.patch(args.id, {
-            iscompleted: !todo.iscompleted,
-        })
-
-     }
-})
-
-export const deleteTodo = mutation({
-    args: {id: v.id("todos")},
-    handler: async (ctx, args) => {
-        await ctx.db.delete(args.id)
+    if (!todo) {
+      console.warn("Toggle skipped — todo not found:", id);
+      return;
     }
 
-})
+    await ctx.db.patch(id, {
+      iscompleted: !todo.iscompleted,
+    });
+  },
+});
 
-// Delete all todos
+/* =======================
+   UPDATE TODO (NEW — FIX)
+======================= */
+export const updateTodo = mutation({
+  args: {
+    id: v.id("todos"),
+    text: v.string(),
+  },
+  handler: async (ctx, { id, text }) => {
+    const todo = await ctx.db.get(id);
+
+    if (!todo) {
+      console.warn("Update skipped — todo not found:", id);
+      return;
+    }
+
+    await ctx.db.patch(id, {
+      text,
+    });
+  },
+});
+
+/* =======================
+   DELETE TODO
+======================= */
+export const deleteTodo = mutation({
+  args: {
+    id: v.id("todos"),
+  },
+  handler: async (ctx, { id }) => {
+    const todo = await ctx.db.get(id);
+
+    if (!todo) {
+      console.warn("Delete skipped — todo already deleted:", id);
+      return;
+    }
+
+    await ctx.db.delete(id);
+  },
+});
+
+/* =======================
+   CLEAR ALL TODOS
+======================= */
 export const clearAllTodos = mutation({
-    handler: async (ctx) => {
+  handler: async (ctx) => {
     const todos = await ctx.db.query("todos").collect();
+
     for (const todo of todos) {
       await ctx.db.delete(todo._id);
     }
-  
-    return { deleteCount: todos.length};
-},
 
+    return { deletedCount: todos.length };
+  },
 });

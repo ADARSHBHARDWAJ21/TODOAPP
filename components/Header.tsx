@@ -1,44 +1,41 @@
-import { Text, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-
+import { createHomeStyles } from "@/assets/styles/home.styles";
 import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex/react";
-import { createHomeStyles } from "@/styles/home.styles";
 import { useTheme } from "@/hooks/useTheme";
+import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "convex/react";
+import { LinearGradient } from "expo-linear-gradient";
+import { Text, View } from "react-native";
 
 const Header = () => {
   const { colors } = useTheme();
-  const homeStyles = createHomeStyles(colors);
+  const styles = createHomeStyles(colors);
 
   const todos = useQuery(api.todos.getTodos) ?? [];
 
-  // ✅ fixed field name
-  const completedCount = todos.filter(
-    (todo) => todo.iscompleted
-  ).length;
-
-  const totalCount = todos.length;
+  const completed = todos.filter((t) => t.iscompleted).length;
+  const total = todos.length;
+  const percent = total ? Math.round((completed / total) * 100) : 0;
 
   return (
-    <View style={homeStyles.header}>
-      <View style={homeStyles.titleContainer}>
-        <LinearGradient
-          colors={colors.gradients.primary}
-          style={homeStyles.iconContainer}
-        >
-          {/* ✅ icon WILL render now */}
-          <Ionicons name="flash-outline" size={28} color="#ffffff" />
+    <View style={styles.header}>
+      <View style={styles.titleContainer}>
+        <LinearGradient colors={colors.gradients.primary} style={styles.iconContainer}>
+          <Ionicons name="flash-outline" size={28} color="#fff" />
         </LinearGradient>
 
         <View>
-          <Text style={homeStyles.title}>
-            {"Today's Tasks 👀"}
-          </Text>
-          <Text style={homeStyles.subtitle}>
-            {completedCount} of {totalCount} completed
+          <Text style={styles.title}>Today&apos;s Tasks</Text>
+          <Text style={styles.subtitle}>
+            {completed} / {total} completed
           </Text>
         </View>
+      </View>
+
+      <View style={styles.progressBar}>
+        <LinearGradient
+          colors={colors.gradients.success}
+          style={[styles.progressFill, { width: `${percent}%` }]}
+        />
       </View>
     </View>
   );
